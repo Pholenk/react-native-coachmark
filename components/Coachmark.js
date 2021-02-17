@@ -1,5 +1,5 @@
 import React, { Component } from 'react';
-import { View, Modal, StyleSheet, Dimensions, TouchableWithoutFeedback } from 'react-native';
+import { View, Modal, StyleSheet, Dimensions } from 'react-native';
 import PropTypes from 'prop-types';
 
 import CoachmarkView from './CoachmarkView';
@@ -10,17 +10,21 @@ export default class Coachmark extends Component {
     autoShow: PropTypes.bool,
     onHide: PropTypes.func,
     onShow: PropTypes.func,
+    onSkip: PropTypes.func,
     isAnchorReady: PropTypes.bool,
     renderArrow: PropTypes.func,
     accessibilityLabel: PropTypes.string,
     testID: PropTypes.string,
+    skipable: PropTypes.bool,
   };
 
   static defaultProps = {
     autoShow: false,
     onHide: () => {}, // eslint-disable-line no-empty-function
     onShow: () => {}, // eslint-disable-line no-empty-function
+    onSkip: () => {}, // eslint-disable-line no-empty-function
     isAnchorReady: true,
+    skipable: false,
   };
 
   constructor(props) {
@@ -35,7 +39,7 @@ export default class Coachmark extends Component {
   show = () => {
     return new Promise((resolve, reject) => {
       this.interval = setInterval(() => {
-        this._isInViewPort().then(isInViewPort => {
+        this._isInViewPort().then((isInViewPort) => {
           if (isInViewPort) {
             this._stopWatching();
             resolve(this._handleShow());
@@ -49,8 +53,12 @@ export default class Coachmark extends Component {
     return this._handleHide();
   };
 
+  skip = () => {
+    return this._handleSkip();
+  };
+
   _isInViewPort = () => {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       if (!this.props.isAnchorReady || !this.view || !this.view.current) {
         return resolve(false);
       }
@@ -83,7 +91,7 @@ export default class Coachmark extends Component {
     this.setState({
       visible: true,
     });
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       this.interval = setInterval(() => {
         if (!this.state.visible) {
           this._stopWatching();
@@ -100,6 +108,17 @@ export default class Coachmark extends Component {
       },
       () => {
         this.props.onHide();
+      }
+    );
+  };
+
+  _handleSkip = () => {
+    this.setState(
+      {
+        visible: false,
+      },
+      () => {
+        this.props.onSkip();
       }
     );
   };
@@ -134,14 +153,21 @@ export default class Coachmark extends Component {
           x={this.state.childStyle.left + this.state.childStyle.width / 2}
           position={this.state.position}
           message={this.props.message}
+          messageStyle={this.props.messageStyle}
+          messageTextStyle={this.props.messageTextStyle}
+          buttonStyle={this.props.buttonStyle}
+          buttonTextStyle={this.props.buttonTextStyle}
           renderArrow={this.props.renderArrow}
+          skipable={this.props.skipable}
+          skip={this.skip}
+          hide={this.hide}
         />
       </View>
     );
   };
 
   render() {
-    const { contentContainerStyle, accessibilityLabel, testID } = this.props;
+    const { contentContainerStyle } = this.props;
     return (
       <React.Fragment>
         <View ref={this.view} style={contentContainerStyle} onLayout={this._measureLayout}>
@@ -160,9 +186,6 @@ export default class Coachmark extends Component {
               {this._renderCoachmark()}
             </React.Fragment>
           )}
-          <TouchableWithoutFeedback accessibilityLabel={accessibilityLabel} testID={testID} onPress={this.hide}>
-            <View style={StyleSheet.absoluteFill} />
-          </TouchableWithoutFeedback>
         </Modal>
       </React.Fragment>
     );
