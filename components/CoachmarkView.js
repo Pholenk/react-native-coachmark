@@ -15,7 +15,18 @@ export default class CoachmarkView extends Component {
   };
 
   renderCoachmarkContent() {
-    return <CoachmarkContent message={this.props.message} />;
+    return (
+      <CoachmarkContent
+        message={this.props.message}
+        messageStyle={this.props.messageStyle}
+        messageTextStyle={this.props.messageTextStyle}
+        buttonStyle={this.props.buttonStyle}
+        buttonTextStyle={this.props.buttonTextStyle}
+        skipable={this.props.skipable}
+        skip={this.props.skip}
+        hide={this.props.hide}
+      />
+    );
   }
 
   renderCoachmarkArrow() {
